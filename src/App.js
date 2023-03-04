@@ -1,23 +1,29 @@
 import React from "react";
+import './styles.css';
 
-import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
+import { BrowserRouter ,  Route, Link } from 'react-router-dom';
 import HomePage from './HomePage';
 import PizzaForm from './PizzaForm';
-const App = () => {
-  return (
 
 
-    <Router>
-      <nav>
-        <ul>
-          <li><Link to="/">Home</Link></li>
-          <li><Link to="/pizza" id="order-pizza">Order Pizza</Link></li>
-        </ul>
-      </nav>
+export default function App(){
+return(
+  <div>
+  
+ <nav>
+  <Link to= "/"><button>Home Page</button></Link>
+  <Link to= "/pizza"><button>Order Pizza</button></Link>
+ </nav>
+<Route path = "/" element= {<HomePage/>}/>
+<Route path ="/pizza" element = {<PizzaForm/>}/>
 
-      <Route exact path="/" component={HomePage} />
-      <Route path="/pizza" component={PizzaForm} />
-    </Router>
-  );
-};
-export default App;
+<HomePage/>
+<PizzaForm/>
+
+  </div>
+)
+
+}
+
+
+

@@ -1,84 +1,154 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import * as yup from "yup"
+import axios from 'axios';
+
+const schema = yup.object().shape({
+  name: yup.string().min(2, "name must be at least 2 characters"),
+  size: yup.string().oneOf(['small', 'medium', 'large'], 'you must choose a size'),
+  topping1: yup.boolean().oneOf([true, false]),
+  topping2: yup.boolean().oneOf([true, false]),
+  topping3: yup.boolean().oneOf([true, false]),
+  topping4: yup.boolean().oneOf([true, false]),
+  special: yup.string()
+
+
+})
 
 const PizzaForm = () => {
-  const [name, setName] = useState('');
-  const [nameError, setNameError] = useState('');
-  const [size, setSize] = useState('');
-  const [sizeError, setSizeError] = useState('');
-  const [topping1, setTopping1] = useState(false);
-  const [topping2, setTopping2] = useState(false);
-  const [topping3, setTopping3] = useState(false);
-  const [topping4, setTopping4] = useState(false);
-  const [special, setSpecial] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    size: '',
+    topping1: false,
+    topping2: false,
+    topping3: false,
+    topping4: false,
+    special: '',
+  });
+  const [disabled, setDisabled] = useState(true)
+  const [errors, setErrors] = useState({
+    name: '',
+    size: '',
+    topping1: false,
+    topping2: false,
+    topping3: false,
+    topping4: false,
+    special: '',
+  })
+
+
+
+  const setFormErrors = (name, value) => {
+    yup.reach(schema, name).validate(value)
+      .then(() => setErrors({ ...errors, [name]: '' }))
+      .catch(err => setErrors({ ...errors, [name]: err.errors[0] }))
+  }
+
+  const handleInputChange = (event) => {
+    const target = event.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+    setFormErrors(name, value)
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+
+
+  };
+
+  useEffect(() => {
+    schema.isValid(formData).then(valid => setDisabled(!valid))
+  }, [formData])
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (name.length < 2) {
-      setNameError('Name must be at least 2 characters');
-    } else {
-      setNameError('');
-    }
-    if (size === '') {
-      setSizeError('Please select a size');
-    } else {
-      setSizeError('');
-    }
-    if (name.length >= 2 && size !== '') {
-      const payload = {
-        name: name,
-        size: size,
-        topping1: topping1,
-        topping2: topping2,
-        topping3: topping3,
-        topping4: topping4,
-        special: special,
-      };
-      console.log(payload);
-    }
-  }
+    axios.post('https://reqres.in/api/orders', formData)
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   return (
-    <form id="pizza-form" onSubmit={handleSubmit}>
-      <label htmlFor="name-input">Name:</label>
-      <input type="text" id="name-input" value={name} onChange={(event) => setName(event.target.value)} />
-      {nameError !== '' && (
-        <span>{nameError}</span>
-      )}
+    <div>
+      <h1>Order Pizza</h1>
+      <form id='pizza-form' onSubmit={handleSubmit}>
+        <label htmlFor="name-input">Name:</label>
+        <input
 
-      <label htmlFor="size-dropdown">Size:</label>
-      <select id="size-dropdown" value={size} onChange={(event) => setSize(event.target.value)}>
-        <option value="">Select size</option>
-        <option value="Small">Small</option>
-        <option value="Medium">Medium</option>
-        <option value="Large">Large</option>
-      </select>
-      {sizeError !== '' && (
-        <span>{sizeError}</span>
-      )}
+          type="text"
+          id="name-input"
+          name="name"
+          value={formData.name}
+          onChange={handleInputChange}
+          required
+        />
+        { errors.name && errors.name   }
+        <label htmlFor="size">Size:</label>
+        <select
+          id="size-dropdown"
+          name="size"
+          value={formData.size}
+          onChange={handleInputChange}
+          required
+        >
+          <option value="">-- Select size --</option>
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
 
-      <label htmlFor="toppings">Toppings:</label>
-      <div id="toppings">
-        <input type="checkbox" id="topping1" checked={topping1} onChange={() => setTopping1(!topping1)} />
-        <label htmlFor="topping1">Topping 1</label>
+        <label htmlFor="topping1">Topping 1:</label>
+        <input
+          type="checkbox"
+          id="topping1"
+          name="topping1"
+          checked={formData.topping1}
+          onChange={handleInputChange}
+        />
 
-        <input type="checkbox" id="topping2" checked={topping2} onChange={() => setTopping2(!topping2)} />
-        <label htmlFor="topping2">Topping 2</label>
+        <label htmlFor="topping2">Topping 2:</label>
+        <input
+          type="checkbox"
+          id="topping2"
+          name="topping2"
+          checked={formData.topping2}
+          onChange={handleInputChange}
+        />
+        <label htmlFor="topping3">Topping 3:</label>
+        <input
+          type="checkbox"
+          id="topping3"
+          name="topping3"
+          checked={formData.topping3}
+          onChange={handleInputChange}
+        />
 
-        <input type="checkbox" id="topping3" checked={topping3} onChange={() => setTopping3(!topping3)} />
-        <label htmlFor="topping3">Topping 3</label>
+        <label htmlFor="topping4">Topping 4:</label>
+        <input
+          type="checkbox"
+          id="topping4"
+          name="topping4"
+          checked={formData.topping2}
+          onChange={handleInputChange}
+        />
 
-        <input type="checkbox" id="topping4" checked={topping4} onChange={() => setTopping4(!topping4)} />
-        <label htmlFor="topping4">Topping 4</label>
-      </div>
+        <label htmlFor="special">Special Instructions:</label>
+        <textarea
+          id="special-text"
+          name="special"
+          value={formData.special}
+          onChange={handleInputChange}
+        ></textarea>
 
-      <label htmlFor="special-text">Special Instructions:</label>
-      <input type="text" id="special-text" value={special} onChange={(event) => setSpecial(event.target.value)} />
+        <button id='order-button' onClick={handleSubmit} type="submit">Order Now</button>
+      </form>
 
-      <button type="submit" id="order-button">Add to Order</button>
-    </form>
+
+    </div>
   );
-}
+};
 
 export default PizzaForm;
-
-
